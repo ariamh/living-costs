@@ -13,13 +13,12 @@ class LivingCostController extends Controller
 {
     use AuthorizesRequests;
 
-
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        // $this->authorize('view-living-cost');
+        $this->authorize('view-living-cost');
 
         $costs = LivingCost::with('city')->latest()->paginate(10);
         return view('admin.living_costs.index', compact('costs'));
