@@ -1,0 +1,25 @@
+{
+  "name": "scalping-bot-tokocrypto",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js",
+    "start:doge": "cp env/dogeusdt.env .env && node index.js",
+    "start:eth": "cp env/ethusdt.env .env && node index.js",
+    "start:btc": "cp env/btcusdt.env .env && node index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@types/node": "^22.13.11",
+    "cctx": "^1.0.1",
+    "ccxt": "^4.4.75",
+    "dotenv": "^16.5.0",
+    "node-fetch": "^3.3.2",
+    "nodemon": "^3.1.9",
+    "technicalindicators": "^3.1.0"
+  }
+}
