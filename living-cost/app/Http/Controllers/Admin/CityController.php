@@ -7,14 +7,18 @@ use App\Rules\ValidCityName;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 class CityController extends Controller
 {
+    use AuthorizesRequests;
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
+        Gate::authorize('view-city');
         $cities = City::latest()->paginate(10);
         return view('admin.cities.index', compact('cities'));
     }
@@ -24,6 +28,7 @@ class CityController extends Controller
      */
     public function create()
     {
+        Gate::authorize('create-city');
         return view('admin.cities.create');
     }
 
@@ -32,6 +37,7 @@ class CityController extends Controller
      */
     public function store(Request $request)
     {
+        Gate::authorize('create-city');
         $data = $request->validate([
             'name' => ['required', 'string', 'max:15'],
             'province' => 'nullable|string|max:50',
