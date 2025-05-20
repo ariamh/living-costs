@@ -1,0 +1,54 @@
+# Version control
+.git
+.gitignore
+.gitattributes
+.github
+
+# Docker specific files
+Dockerfile
+docker-compose.yml
+.dockerignore
+docker/ # If you have local docker configurations you don't want in the image itself
+
+# IDE and editor specific files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Node.js dependencies (these should be built/installed inside the container if needed, or handled separately)
+node_modules/
+npm-debug.log*
+yarn-error.log
+package-lock.json # Often better to run npm install in the Dockerfile
+yarn.lock         # Often better to run yarn install in the Dockerfile
+
+# Composer cache and vendor directory (vendor is installed via 'composer install' in Dockerfile)
+vendor/
+composer.lock # The Dockerfile should use composer install based on composer.json
+~/.composer/cache
+~/.npm # npm cache
+
+# Laravel specific files and directories
+storage/framework/sessions/*
+storage/framework/views/*
+storage/framework/cache/data/*
+storage/logs/*.log
+storage/app/public/* # Typically, public assets are symlinked or copied by `php artisan storage:link`
+bootstrap/cache/*
+!.gitignore # Ensure .gitignore files within these directories are NOT ignored if they exist
+
+# Local environment files
+.env
+.env.backup
+.env.example
+
+# Test files and reports (unless you run tests within the Docker image build)
+tests/
+phpunit.xml
+coverage/
+
+# Operating system specific files
+.DS_Store
+Thumbs.db
