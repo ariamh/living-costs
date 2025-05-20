@@ -1,0 +1,92 @@
+services:
+  app:
+    build:
+      context: . # Use the Dockerfile in the current directory
+      dockerfile: Dockerfile
+    container_name: laravel_app
+    restart: unless-stopped
+    tty: true # Enables a TTY, useful for debugging
+    environment:
+      # These environment variables will be available to the Laravel application
+      # It's recommended to use a .env file for sensitive data
+      SERVICE_NAME: app
+      SERVICE_TAGS: dev
+    working_dir: /var/www/html
+    volumes:
+      - ./:/var/www/html # Mount current directory to the container's web root
+      - /var/www/html/vendor # Create an anonymous volume to preserve the vendor directory from the image
+      - /var/www/html/node_modules
+      - laravel_public_build:/var/www/html/public/build
+    depends_on:
+      db:
+        condition: service_healthy # Wait for db to be healthy
+    networks:
+      - laravel_network
+    command: >
+      sh -c "
+        echo 'Waiting for database to be ready...' &&
+        # The depends_on condition: service_healthy handles the wait.
+        # Now, run migrations.
+        php artisan migrate --force --no-interaction && \
+        echo 'Migrations completed successfully.' && \
+        php-fpm
+      "
+
+  nginx:
+    image: nginx:alpine
+    container_name: laravel_nginx
+    restart: unless-stopped
+    tty: true
+    ports:
+      - "8000:80"
+      #- "443:443" # For HTTPS, if you configure SSL
+    volumes:
+      - ./:/var/www/html # Share application code with Nginx
+      - ./docker/nginx/conf.d/:/etc/nginx/conf.d/ # Mount Nginx configuration
+      - laravel_public_build:/var/www/html/public/build
+    depends_on:
+      - app
+    networks:
+      - laravel_network
+
+  db:
+    image: mysql:8.0
+    container_name: laravel_db
+    restart: unless-stopped
+    tty: true
+    ports:
+      - "33061:3306"
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE:-laravel} # Use DB_DATABASE from .env, default to 'laravel'
+      # To use root with an empty password
+      MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+      # You can remove or comment out MYSQL_USER, MYSQL_PASSWORD, and MYSQL_ROOT_PASSWORD
+      # MYSQL_USER: ${DB_USERNAME:-user}
+      # MYSQL_PASSWORD: ${DB_PASSWORD:-password}
+      # MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-rootpassword} # Secure root password
+      SERVICE_TAGS: dev
+      SERVICE_NAME: mysql
+    volumes:
+      - dbdata:/var/lib/mysql # Persist database data using a named volume
+    networks:
+      - laravel_network
+    healthcheck:
+      # If MYSQL_ALLOW_EMPTY_PASSWORD is "yes", root has an empty password.
+      # If you uncomment and set MYSQL_USER and MYSQL_PASSWORD for a non-root user
+      # that Laravel uses, and that user can ping, you could use those.
+      # For root with empty password:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s # Give MySQL some time to initialize properly
+
+networks:
+  laravel_network:
+    driver: bridge
+
+volumes:
+  dbdata:
+    driver: local
+  laravel_public_build:
+    driver: local
