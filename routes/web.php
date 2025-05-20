@@ -111,8 +111,8 @@ Route::middleware(['auth', RoleMiddleware::class . ':admin'])->group(function ()
     Route::get('/documents/download/{document}', [DocumentController::class, 'download'])->name('documents.download');
     Route::get('/documents/{filename}', [DocumentController::class, 'show'])->name('documents.show');
 
-    Route::get('admin/living-costs/map', [LivingCostController::class, 'map'])
-        ->name('admin.living_costs.map');
+    // Route::get('admin/living-costs/map', [LivingCostController::class, 'map'])
+    //     ->name('admin.living_costs.map');
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
