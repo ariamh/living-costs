@@ -18,9 +18,19 @@ services:
       - /var/www/html/node_modules
       - laravel_public_build:/var/www/html/public/build
     depends_on:
-      - db
+      db:
+        condition: service_healthy # Wait for db to be healthy
     networks:
       - laravel_network
+    command: >
+      sh -c "
+        echo 'Waiting for database to be ready...' &&
+        # The depends_on condition: service_healthy handles the wait.
+        # Now, run migrations.
+        php artisan migrate --force --no-interaction && \
+        echo 'Migrations completed successfully.' && \
+        php-fpm
+      "
 
   nginx:
     image: nginx:alpine
@@ -60,6 +70,16 @@ services:
       - dbdata:/var/lib/mysql # Persist database data using a named volume
     networks:
       - laravel_network
+    healthcheck:
+      # If MYSQL_ALLOW_EMPTY_PASSWORD is "yes", root has an empty password.
+      # If you uncomment and set MYSQL_USER and MYSQL_PASSWORD for a non-root user
+      # that Laravel uses, and that user can ping, you could use those.
+      # For root with empty password:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s # Give MySQL some time to initialize properly
 
 networks:
   laravel_network:
